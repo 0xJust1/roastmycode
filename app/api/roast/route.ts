@@ -1,0 +1,104 @@
+import { NextRequest, NextResponse } from "next/server";
+import Groq from "groq-sdk";
+
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+const LEVEL_PROMPTS = {
+  doux: {
+    fr: "Sois gentil mais honnete. Utilise l'humour bienveillant. Quelques blagues douces, pas de cruaute.",
+    en: "Be gentle but honest. Use kind humour. A few light jokes, no cruelty.",
+  },
+  brutal: {
+    fr: "Sois impitoyable mais drole. Style stand-up comedy. Demolit le code avec des metaphores croustillantes. Garde un fond de respect.",
+    en: "Be ruthless but funny. Stand-up comedy style. Demolish the code with colourful metaphors. Keep a hint of respect.",
+  },
+  impitoyable: {
+    fr: "ZERO PITIE. Tu es un demon du code qui n'a jamais vu quelque chose d'aussi catastrophique. Sois theatral, horrifie, dramatique. Mais reste drole - pas mechant, juste absolument consterne.",
+    en: "ZERO MERCY. You are a code demon who has never witnessed such catastrophic horror. Be theatrical, horrified, dramatic. Stay funny — not mean, just utterly appalled.",
+  },
+};
+
+export async function POST(req: NextRequest) {
+  try {
+    const { code, level = "brutal", language = "auto", lang = "fr" } = await req.json();
+
+    if (!code || code.trim().length < 5) {
+      return NextResponse.json(
+        { error: lang === "en" ? "Paste real code first!" : "Colle du vrai code d'abord !" },
+        { status: 400 }
+      );
+    }
+
+    if (code.length > 8000) {
+      return NextResponse.json(
+        { error: lang === "en" ? "Too much code! Max 8000 characters." : "Trop de code ! Max 8000 caracteres." },
+        { status: 400 }
+      );
+    }
+
+    const levelKey = level as keyof typeof LEVEL_PROMPTS;
+    const levelInstruction =
+      LEVEL_PROMPTS[levelKey]?.[lang as "fr" | "en"] ?? LEVEL_PROMPTS.brutal.fr;
+
+    const outputLang = lang === "en"
+      ? "You MUST respond entirely in English."
+      : "Tu DOIS repondre entierement en francais.";
+
+    const systemPrompt = `You are RoastBot, an AI agent specialized in roasting code with stand-up comedy humour.
+You analyse code with the eye of a senior dev who has seen EVERYTHING, and you demolish it with style.
+${levelInstruction}
+${outputLang}
+
+ABSOLUTE RULES:
+- Respond ONLY in valid JSON with this exact structure
+- The roast must be specific to the code provided (not generic). Quote concrete elements.
+- "worstLine" must be a real line extracted from the provided code
+- "verdict" is a short impactful title (max 6 words)
+- "citation" is the funniest line of the roast (max 120 chars), perfect for Twitter
+- Shame score is between 0 (perfect code) and 100 (cosmic catastrophe)
+
+Mandatory JSON structure:
+{
+  "verdict": "string",
+  "score": number,
+  "language": "string",
+  "roast": "string (2-4 funny paragraphs)",
+  "citation": "string",
+  "worstLine": "string",
+  "worstLineComment": "string",
+  "badges": ["string", "string", "string"],
+  "mascotMood": "dead" | "horrified" | "crying" | "laughing" | "shocked"
+}
+
+Badges are humorous titles awarded to the code (e.g. "Chaos Architect", "Spaghetti Master", "Loop Whisperer i,j,k").`;
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: `Code to roast${language !== "auto" ? ` (${language})` : ""}:\n\n\`\`\`\n${code}\n\`\`\``,
+        },
+      ],
+      temperature: 0.9,
+      max_tokens: 1200,
+      response_format: { type: "json_object" },
+    });
+
+    const raw = completion.choices[0]?.message?.content;
+    if (!raw) throw new Error("Empty response from Groq");
+
+    const result = JSON.parse(raw);
+
+    if (typeof result.score !== "number" || !result.roast || !result.verdict) {
+      throw new Error("Invalid JSON structure");
+    }
+
+    return NextResponse.json(result);
+  } catch (err: unknown) {
+    console.error("Roast API error:", err);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: `Roast failed: ${message}` }, { status: 500 });
+  }
+}
