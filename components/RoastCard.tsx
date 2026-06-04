@@ -103,9 +103,12 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
 
   const generateImage = useCallback(async (): Promise<string> => {
     if (!cardRef.current) throw new Error("Card not mounted");
+    // skipFonts avoids CORS failures with Google Fonts CDN in production
     return await toPng(cardRef.current, {
       cacheBust: true,
       pixelRatio: 2,
+      skipFonts: true,
+      backgroundColor: "#0a0a14",
     });
   }, []);
 
