@@ -7,7 +7,7 @@ import RoastCard from "@/components/RoastCard";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
-type RoastLevel = "doux" | "brutal" | "impitoyable";
+type RoastLevel = "doux" | "brutal" | "impitoyable" | "gordon";
 type Lang = "fr" | "en";
 type MascotMood = "dead" | "horrified" | "crying" | "laughing" | "shocked" | "idle";
 
@@ -28,11 +28,13 @@ const LEVELS = {
     { value: "doux" as RoastLevel, label: "Doux", emoji: "☕", desc: "Critique bienveillante" },
     { value: "brutal" as RoastLevel, label: "Brutal", emoji: "🔥", desc: "Stand-up comedy" },
     { value: "impitoyable" as RoastLevel, label: "Impitoyable", emoji: "💀", desc: "Zero pitie" },
+    { value: "gordon" as RoastLevel, label: "Gordon Ramsay", emoji: "👨‍🍳", desc: "Hell's Kitchen mode" },
   ],
   en: [
     { value: "doux" as RoastLevel, label: "Gentle", emoji: "☕", desc: "Friendly critique" },
     { value: "brutal" as RoastLevel, label: "Brutal", emoji: "🔥", desc: "Stand-up comedy" },
     { value: "impitoyable" as RoastLevel, label: "Merciless", emoji: "💀", desc: "Zero mercy" },
+    { value: "gordon" as RoastLevel, label: "Gordon Ramsay", emoji: "👨‍🍳", desc: "Hell's Kitchen mode" },
   ],
 };
 

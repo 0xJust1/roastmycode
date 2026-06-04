@@ -49,6 +49,7 @@ const LEVEL_COLORS: Record<string, string> = {
   doux: "#7fdbca",
   brutal: "#ff6eb4",
   impitoyable: "#ff4757",
+  gordon: "#ff8c00",
 };
 
 const T = {
