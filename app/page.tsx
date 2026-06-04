@@ -38,7 +38,7 @@ const LEVELS = {
 
 const T = {
   fr: {
-    badge: "Propulsé par Llama 3.3 70B (Groq) — Open Source",
+    badge: "Analyse de code par IA — Resultats instantanes",
     tagline: "Colle ton code. Une IA open-source le massacre avec humour.",
     tagline2: "Partage ta honte. Defie tes collegues.",
     roastsCount: "Roasts effectues",
@@ -58,14 +58,14 @@ const T = {
     steps: [
       { title: "Colle ton code", desc: "N'importe quel langage. Plus c'est crade, mieux c'est." },
       { title: "Choisis ton niveau", desc: "De la critique douce au massacre absolu." },
-      { title: "L'IA frappe", desc: "Llama 3.3 70B analyse et demolit avec style." },
+      { title: "L'IA frappe", desc: "Notre IA analyse et demolit avec style." },
       { title: "Partage ta honte", desc: "Telecharge ta Roast Card. Defie tes collegues." },
     ],
-    footerPowered: "Open-source AI • Llama 3.3 70B via Groq",
+    footerPowered: "Propulse par IA",
     emptyError: "Colle du code d'abord !",
   },
   en: {
-    badge: "Powered by Llama 3.3 70B (Groq) — Open Source",
+    badge: "AI-powered code analysis — Instant results",
     tagline: "Paste your code. An open-source AI destroys it with humour.",
     tagline2: "Share your shame. Challenge your colleagues.",
     roastsCount: "Roasts done",
@@ -85,10 +85,10 @@ const T = {
     steps: [
       { title: "Paste your code", desc: "Any language. The worse, the better." },
       { title: "Pick your level", desc: "From gentle critique to absolute massacre." },
-      { title: "AI strikes", desc: "Llama 3.3 70B analyses and demolishes with style." },
+      { title: "AI strikes", desc: "Our AI analyses and demolishes with style." },
       { title: "Share your shame", desc: "Download your Roast Card. Challenge colleagues." },
     ],
-    footerPowered: "Open-source AI • Llama 3.3 70B via Groq",
+    footerPowered: "Powered by AI",
     emptyError: "Paste some code first!",
   },
 };
