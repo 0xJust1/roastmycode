@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
       cardUrl = `${baseUrl}/cards/${filename}`;
     }
 
-    const shareUrl = `${baseUrl}/share/${id}`;
+    // Encode the real cardUrl into the shareUrl so the share page can use it directly
+    const shareUrl = `${baseUrl}/share/${id}?img=${encodeURIComponent(cardUrl)}`;
 
     return NextResponse.json({ id, cardUrl, shareUrl });
   } catch (err) {
