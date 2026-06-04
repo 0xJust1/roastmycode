@@ -49,6 +49,10 @@ You analyse code with the eye of a senior dev who has seen EVERYTHING, and you d
 ${levelInstruction}
 ${outputLang}
 
+FIRST: determine if the input is actually code (any programming language, config file, script, SQL, regex, etc.).
+If it is NOT code (plain text, essay, lyrics, a recipe, a love letter, gibberish, etc.), set "isCode": false and fill "notCodeMessage" with a short funny rejection (1-2 sentences, in the correct language). Leave all other fields as empty strings or 0.
+If it IS code, set "isCode": true and fill all fields normally.
+
 ABSOLUTE RULES:
 - Respond ONLY in valid JSON with this exact structure
 - The roast must be specific to the code provided (not generic). Quote concrete elements.
@@ -59,6 +63,8 @@ ABSOLUTE RULES:
 
 Mandatory JSON structure:
 {
+  "isCode": boolean,
+  "notCodeMessage": "string (only if isCode is false, funny rejection message)",
   "verdict": "string",
   "score": number,
   "language": "string",
@@ -90,6 +96,14 @@ Badges are humorous titles awarded to the code (e.g. "Chaos Architect", "Spaghet
     if (!raw) throw new Error("Empty response from Groq");
 
     const result = JSON.parse(raw);
+
+    // Input is not code — return a funny rejection
+    if (result.isCode === false) {
+      return NextResponse.json(
+        { error: result.notCodeMessage || (lang === "en" ? "That's not code. Nice try though." : "Ca ce n'est pas du code. Beau essai quand meme."), code: "NOT_CODE" },
+        { status: 422 }
+      );
+    }
 
     if (typeof result.score !== "number" || !result.roast || !result.verdict) {
       throw new Error("Invalid JSON structure");
