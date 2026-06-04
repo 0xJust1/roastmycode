@@ -4,12 +4,12 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "RoastMyCode - L'IA qui demolit ton code avec style",
   description: "Colle ton code, une IA le massacre avec humour. Partage ta Roast Card et defie tes collegues.",
-  metadataBase: new URL("https://roastmycode.wtf"),
+  metadataBase: new URL("https://www.roastmycode.wtf"),
   openGraph: {
     title: "RoastMyCode",
     description: "L'IA qui demolit ton code avec style",
     type: "website",
-    url: "https://roastmycode.wtf",
+    url: "https://www.roastmycode.wtf",
     siteName: "RoastMyCode",
   },
   twitter: {
