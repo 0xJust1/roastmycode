@@ -63,7 +63,12 @@ ABSOLUTE RULES:
 - "worstLine" must be a real line extracted from the provided code
 - "verdict" is a short impactful title (max 6 words)
 - "citation" is the funniest line of the roast (max 120 chars), perfect for Twitter
-- Shame score is between 0 (perfect code) and 100 (cosmic catastrophe)
+- Shame score reflects BOTH the code quality AND the roast level:
+  * doux (gentle): score between 5 and 45 — be generous, highlight flaws gently
+  * brutal: score between 40 and 75 — balanced, honest, comedy-driven
+  * impitoyable (merciless): score between 65 and 95 — savage but not always max
+  * gordon: score between 75 and 100 — Gordon never forgives
+- DO NOT always pick the same score. Vary it based on the actual quality of the code.
 
 Mandatory JSON structure:
 {
@@ -91,7 +96,7 @@ Badges are humorous titles awarded to the code (e.g. "Chaos Architect", "Spaghet
           content: `Code to roast${language !== "auto" ? ` (${language})` : ""}:\n\n\`\`\`\n${code}\n\`\`\``,
         },
       ],
-      temperature: 0.9,
+      temperature: 1.0,
       max_tokens: 1200,
       response_format: { type: "json_object" },
     });
