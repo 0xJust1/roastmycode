@@ -284,6 +284,13 @@ body::after {
   box-shadow: 0 4px 15px rgba(255, 110, 180, 0.3);
 }
 
+.level-option.active-gordon {
+  background: linear-gradient(135deg, #ff8c00, #ff4500);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+}
+
 /* Shame bar */
 .shame-bar-bg {
   height: 12px;

@@ -259,12 +259,17 @@ export default function Home() {
               <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "16px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                 {t.levelTitle}
               </div>
-              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "nowrap", overflowX: "auto" }}>
                 {levels.map((l) => (
                   <button
                     key={l.value}
-                    className={`level-option ${level === l.value ? "active" : ""}`}
+                    className={`level-option ${
+                      level === l.value
+                        ? l.value === "gordon" ? "active-gordon" : "active"
+                        : ""
+                    }`}
                     onClick={() => setLevel(l.value)}
+                    style={{ flexShrink: 0 }}
                   >
                     <span style={{ marginRight: "6px" }}>{l.emoji}</span>
                     {l.label}
