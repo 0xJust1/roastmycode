@@ -294,7 +294,7 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
           borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "16px"
         }}>
           <span style={{ fontFamily: "'Fredoka One', cursive", fontSize: "1rem", color: "#ff6eb4" }}>
-            roastmycode.dev
+            roastmycode.wtf
           </span>
           <span style={{ fontSize: "0.75rem", color: "#8888aa", fontFamily: "Inter" }}>
             {t.poweredBy}
