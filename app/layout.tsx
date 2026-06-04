@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "RoastMyCode - L'IA qui demolit ton code avec style",
-  description: "Colle ton code, une IA le massacre avec humour. Partage ta Roast Card et defie tes collegues.",
+  title: "RoastMyCode - AI destroys your code with style",
+  description: "Paste your code. AI roasts it with humour. Share your shame card and challenge your colleagues.",
   metadataBase: new URL("https://www.roastmycode.wtf"),
   openGraph: {
     title: "RoastMyCode",
-    description: "L'IA qui demolit ton code avec style",
+    description: "Paste your code. AI destroys it with style.",
     type: "website",
     url: "https://www.roastmycode.wtf",
     siteName: "RoastMyCode",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "RoastMyCode",
-    description: "L'IA qui demolit ton code avec style",
+    description: "Paste your code. AI destroys it with style.",
     site: "@roastmycode",
   },
 };
@@ -26,8 +26,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="en">
       <body>{children}</body>
     </html>
   );
 }
+
