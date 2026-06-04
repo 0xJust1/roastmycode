@@ -136,25 +136,34 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
   const handleShareX = async () => {
     setSharing(true);
     try {
-      // Generate and upload the card image to get a public URL
-      const dataUrl = await generateImage();
-      const res = await fetch("/api/upload-card", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dataUrl }),
-      });
-
-      if (!res.ok) throw new Error("Upload failed");
-      const { shareUrl } = await res.json();
-
       const tweetText =
         lang === "en"
           ? `My code just got absolutely destroyed by an AI. Shame score: ${result.score}/100\n\n"${result.citation}"\n\n#RoastMyCode`
           : `Mon code vient de se faire massacrer par une IA. Score de honte: ${result.score}/100\n\n"${result.citation}"\n\n#RoastMyCode`;
 
+      let shareUrl = "https://www.roastmycode.wtf";
+
+      try {
+        // Try to generate and upload card image
+        const dataUrl = await generateImage();
+        const res = await fetch("/api/upload-card", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dataUrl }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          shareUrl = data.shareUrl ?? shareUrl;
+        }
+      } catch (uploadErr) {
+        // Upload failed — share with site URL only (no image preview)
+        console.warn("Card upload failed, sharing without image:", uploadErr);
+      }
+
       const xUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(shareUrl)}`;
       window.open(xUrl, "_blank");
-    } catch {
+    } catch (err) {
+      console.error("Share error:", err);
       showToast(t.errorShare);
     } finally {
       setSharing(false);
