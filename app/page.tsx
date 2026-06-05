@@ -407,7 +407,7 @@ export default function Home() {
                   </div>
                   <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                      {charCount}/8000 chars
+                      {charCount}/25000 chars
                     </span>
                     <button
                       onClick={handleExample}

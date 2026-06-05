@@ -145,8 +145,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (finalCode.length > 8000) {
-      finalCode = finalCode.substring(0, 8000) + "\n\n// [... truncated ...]";
+    if (finalCode.length > 25000) {
+      finalCode = finalCode.substring(0, 25000) + "\n\n// [... truncated ...]";
     }
 
     const levelKey = level as keyof typeof LEVEL_PROMPTS;
