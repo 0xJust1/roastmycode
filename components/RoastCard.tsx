@@ -67,6 +67,10 @@ const T = {
     errorCopy: "Erreur de copie",
     errorDownload: "Erreur lors du telechargement",
     errorShare: "Erreur lors du partage",
+    publishWall: "Publier sur le Mur de la Honte public",
+    twitterHandlePlaceholder: "Ton pseudo X (ex: @0xJust1) - Optionnel",
+    badgeTitle: "Badge GitHub pour ton README",
+    badgeCopied: "Badge markdown copie !",
   },
   en: {
     roastPhrase: "The roast quote",
@@ -82,6 +86,10 @@ const T = {
     errorCopy: "Copy error",
     errorDownload: "Download error",
     errorShare: "Share error",
+    publishWall: "Publish on the public Wall of Shame",
+    twitterHandlePlaceholder: "Your X handle (e.g., @0xJust1) - Optional",
+    badgeTitle: "GitHub Badge for your README",
+    badgeCopied: "Badge markdown copied!",
   },
 };
 
@@ -93,6 +101,10 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
   const [copying, setCopying] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const t = T[lang];
+
+  const [addToWall, setAddToWall] = useState(false);
+  const [twitterHandle, setTwitterHandle] = useState("");
+  const [copiedBadge, setCopiedBadge] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -124,6 +136,18 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
       height: 630,
     });
   }, []);
+
+  const handleCopyBadgeMarkdown = async () => {
+    try {
+      await navigator.clipboard.writeText(
+        `[![RoastMyCode Score](https://www.roastmycode.wtf/api/badge?score=${result.score}&level=${level})](https://www.roastmycode.wtf)`
+      );
+      setCopiedBadge(true);
+      setTimeout(() => setCopiedBadge(false), 2000);
+    } catch {
+      showToast(t.errorCopy);
+    }
+  };
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -170,6 +194,27 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
         if (res.ok) {
           const data = await res.json();
           shareUrl = data.shareUrl ?? shareUrl;
+          const cardId = data.id;
+          const uploadedCardUrl = data.cardUrl;
+
+          // If Wall of Shame is checked, post to /api/wall!
+          if (addToWall && cardId && uploadedCardUrl) {
+            await fetch("/api/wall", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: cardId,
+                verdict: result.verdict,
+                score: result.score,
+                level,
+                lang,
+                citation: result.citation,
+                mascotMood: result.mascotMood,
+                twitterHandle,
+                imgUrl: uploadedCardUrl,
+              }),
+            }).catch(e => console.error("Failed to add to Wall of Shame:", e));
+          }
         }
       } catch (uploadErr) {
         // Upload failed — share with site URL only (no image preview)
@@ -329,6 +374,49 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
         </div>
       </div>
 
+      {/* Wall of Shame Opt-in */}
+      <div style={{
+        background: "rgba(255, 255, 255, 0.02)",
+        border: "1px solid var(--border)",
+        borderRadius: "12px",
+        padding: "16px 20px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+      }}>
+        <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "0.85rem", color: "var(--text-muted)" }}>
+          <input
+            type="checkbox"
+            checked={addToWall}
+            onChange={(e) => setAddToWall(e.target.checked)}
+            style={{
+              accentColor: "var(--accent-pink)",
+              cursor: "pointer",
+            }}
+          />
+          {t.publishWall}
+        </label>
+        
+        {addToWall && (
+          <input
+            type="text"
+            value={twitterHandle}
+            onChange={(e) => setTwitterHandle(e.target.value)}
+            placeholder={t.twitterHandlePlaceholder}
+            style={{
+              background: "var(--bg-main)",
+              border: "1px solid var(--border)",
+              borderRadius: "6px",
+              padding: "8px 12px",
+              fontSize: "0.8rem",
+              color: "#fff",
+              outline: "none",
+              fontFamily: "Inter, sans-serif",
+            }}
+          />
+        )}
+      </div>
+
       {/* Share actions */}
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
         <button className="btn btn-primary" onClick={handleShareX} disabled={sharing}>
@@ -362,6 +450,56 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
           )}
           {t.download}
         </button>
+      </div>
+
+      {/* GitHub Badge Box */}
+      <div style={{
+        background: "rgba(255, 255, 255, 0.03)",
+        border: "1px solid var(--border)",
+        borderRadius: "12px",
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+      }}>
+        <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--accent-pink)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          {t.badgeTitle}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/api/badge?score=${result.score}&level=${level}`}
+            alt="RoastMyCode Badge"
+            style={{ display: "block" }}
+          />
+          <button
+            onClick={handleCopyBadgeMarkdown}
+            style={{
+              background: copiedBadge ? "var(--accent-teal)" : "rgba(255, 110, 180, 0.15)",
+              color: copiedBadge ? "#05050a" : "var(--accent-pink)",
+              border: "none",
+              borderRadius: "6px",
+              padding: "6px 12px",
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+          >
+            {copiedBadge ? t.badgeCopied : t.copyQuote}
+          </button>
+        </div>
+        <code style={{
+          fontSize: "0.75rem",
+          color: "var(--text-muted)",
+          background: "var(--bg-main)",
+          padding: "8px 12px",
+          borderRadius: "6px",
+          fontFamily: "JetBrains Mono, monospace",
+          wordBreak: "break-all",
+        }}>
+          {`[![RoastMyCode Score](https://www.roastmycode.wtf/api/badge?score=${result.score}&level=${level})](https://www.roastmycode.wtf)`}
+        </code>
       </div>
 
       {/* Toast */}

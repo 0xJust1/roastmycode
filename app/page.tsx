@@ -70,6 +70,12 @@ const T = {
     tipCopy: "Copier",
     tipCopied: "Copie !",
     tipCoffee: "Offrir un cafe",
+    githubTab: "Depot GitHub",
+    pasteTab: "Coller le code",
+    githubPlaceholder: "Saisis l'URL d'un depot public GitHub (ex: owner/repo)",
+    wallTitle: "Le Mur de la Honte",
+    wallSub: "Les pires codes et les verdicts les plus brutaux de la communaute",
+    wallRoastedBy: "Roaste par",
   },
   en: {
     badge: "AI-powered code analysis — Instant results",
@@ -102,6 +108,12 @@ const T = {
     tipCopy: "Copy",
     tipCopied: "Copied!",
     tipCoffee: "Buy me a coffee",
+    githubTab: "GitHub Repo",
+    pasteTab: "Paste Code",
+    githubPlaceholder: "Enter a public GitHub repository URL (e.g., owner/repo)",
+    wallTitle: "The Wall of Shame",
+    wallSub: "The worst code and most brutal verdicts shared by the community",
+    wallRoastedBy: "Roasted by",
   },
 };
 
@@ -129,6 +141,9 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [charCount, setCharCount] = useState(0);
   const [totalRoasts, setTotalRoasts] = useState<number | null>(null);
+  const [importMode, setImportMode] = useState<"paste" | "github">("paste");
+  const [githubUrl, setGithubUrl] = useState("");
+  const [wallRoasts, setWallRoasts] = useState<any[]>([]);
   const [copied, setCopied] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const t = T[lang];
@@ -144,13 +159,24 @@ export default function Home() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Load real counter on mount
+  const fetchWall = () => {
+    fetch("/api/wall")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setWallRoasts(data);
+      })
+      .catch(() => {});
+  };
+
+  // Load real counter and wall on mount
   useEffect(() => {
     fetch("/api/stats")
       .then((r) => r.json())
       .then((data) => setTotalRoasts(data.total))
       .catch(() => setTotalRoasts(0));
-  }, []);
+
+    fetchWall();
+  }, [result]);
 
   const handleCodeChange = useCallback((val: string | undefined) => {
     const v = val ?? "";
@@ -159,8 +185,9 @@ export default function Home() {
   }, []);
 
   const handleRoast = async () => {
-    if (!code.trim()) {
-      setError(t.emptyError);
+    const inputCode = importMode === "github" ? githubUrl : code;
+    if (!inputCode.trim()) {
+      setError(importMode === "github" ? (lang === "en" ? "Enter a public GitHub repository URL first!" : "Saisis un lien de depot GitHub public d'abord !") : t.emptyError);
       return;
     }
     setError(null);
@@ -171,7 +198,12 @@ export default function Home() {
       const res = await fetch("/api/roast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, level, lang }),
+        body: JSON.stringify({
+          code: inputCode,
+          level,
+          lang,
+          isGithub: importMode === "github"
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "API Error");
@@ -300,54 +332,117 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Code editor */}
-            <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-              <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "14px 20px", borderBottom: "1px solid var(--border)"
-              }}>
-                <div style={{ display: "flex", gap: "6px" }}>
-                  {["#ff4757", "#ffe66d", "#7fdbca"].map((c) => (
-                    <div key={c} style={{ width: "10px", height: "10px", borderRadius: "50%", background: c }} />
-                  ))}
+            {/* Tab selector */}
+            <div style={{ display: "flex", gap: "10px", marginBottom: "-14px" }}>
+              {(["paste", "github"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setImportMode(mode)}
+                  style={{
+                    background: importMode === mode ? "var(--bg-card)" : "transparent",
+                    color: importMode === mode ? "var(--accent-pink)" : "var(--text-muted)",
+                    border: "1px solid " + (importMode === mode ? "var(--border)" : "transparent"),
+                    borderBottom: importMode === mode ? "1px solid var(--bg-card)" : "none",
+                    borderRadius: "12px 12px 0 0",
+                    padding: "10px 20px",
+                    fontFamily: "Inter, sans-serif",
+                    fontWeight: 600,
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    zIndex: 1,
+                    marginBottom: "-1px",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  {mode === "paste" ? t.pasteTab : t.githubTab}
+                </button>
+              ))}
+            </div>
+
+            {/* Input rendering based on mode */}
+            {importMode === "github" ? (
+              <div className="card" style={{ padding: "40px", textAlign: "center", display: "flex", flexDirection: "column", gap: "20px", alignItems: "center" }}>
+                <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>
+                  {t.githubTab}
                 </div>
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                    {charCount}/8000 chars
-                  </span>
-                  <button
-                    onClick={handleExample}
-                    style={{ fontSize: "0.75rem", color: "var(--accent-teal)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
-                  >
-                    {t.exampleBtn}
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    style={{ fontSize: "0.75rem", color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}
-                  >
-                    {t.resetBtn}
-                  </button>
+                <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", maxWidth: "460px", margin: "0 auto", lineHeight: 1.6 }}>
+                  {t.githubPlaceholder}
+                </p>
+                <div style={{ width: "100%", maxWidth: "550px", display: "flex", gap: "12px", flexDirection: "column", alignItems: "stretch" }}>
+                  <input
+                    type="text"
+                    value={githubUrl}
+                    onChange={(e) => setGithubUrl(e.target.value)}
+                    placeholder="https://github.com/0xJust1/roastmycode"
+                    style={{
+                      width: "100%",
+                      background: "rgba(10, 10, 20, 0.4)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "var(--radius-sm)",
+                      padding: "14px 20px",
+                      fontSize: "1rem",
+                      color: "#fff",
+                      fontFamily: "JetBrains Mono, monospace",
+                      outline: "none",
+                      textAlign: "center",
+                      boxSizing: "border-box",
+                      transition: "border-color 0.2s ease",
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "var(--accent-pink)"}
+                    onBlur={(e) => e.target.style.borderColor = "var(--border)"}
+                  />
                 </div>
               </div>
-              <MonacoEditor
-                height="340px"
-                defaultLanguage="javascript"
-                value={code}
-                onChange={handleCodeChange}
-                theme="vs-dark"
-                options={{
-                  fontSize: 14,
-                  fontFamily: "JetBrains Mono, monospace",
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false,
-                  padding: { top: 16, bottom: 16 },
-                  lineNumbers: "on",
-                  renderLineHighlight: "gutter",
-                  wordWrap: "on",
-                  automaticLayout: true,
-                }}
-              />
-            </div>
+            ) : (
+              /* Code editor */
+              <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "14px 20px", borderBottom: "1px solid var(--border)"
+                }}>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    {["#ff4757", "#ffe66d", "#7fdbca"].map((c) => (
+                      <div key={c} style={{ width: "10px", height: "10px", borderRadius: "50%", background: c }} />
+                    ))}
+                  </div>
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                      {charCount}/8000 chars
+                    </span>
+                    <button
+                      onClick={handleExample}
+                      style={{ fontSize: "0.75rem", color: "var(--accent-teal)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
+                    >
+                      {t.exampleBtn}
+                    </button>
+                    <button
+                      onClick={handleReset}
+                      style={{ fontSize: "0.75rem", color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}
+                    >
+                      {t.resetBtn}
+                    </button>
+                  </div>
+                </div>
+                <MonacoEditor
+                  height="340px"
+                  defaultLanguage="javascript"
+                  value={code}
+                  onChange={handleCodeChange}
+                  theme="vs-dark"
+                  options={{
+                    fontSize: 14,
+                    fontFamily: "JetBrains Mono, monospace",
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    padding: { top: 16, bottom: 16 },
+                    lineNumbers: "on",
+                    renderLineHighlight: "gutter",
+                    wordWrap: "on",
+                    automaticLayout: true,
+                  }}
+                />
+              </div>
+            )}
 
             {/* Error */}
             {error && (
@@ -364,7 +459,7 @@ export default function Home() {
               <button
                 className="btn btn-primary"
                 onClick={handleRoast}
-                disabled={loading || !code.trim()}
+                disabled={loading || (importMode === "github" ? !githubUrl.trim() : !code.trim())}
                 style={{ fontSize: "1.1rem", padding: "16px 48px" }}
               >
                 {loading ? (
@@ -431,6 +526,104 @@ export default function Home() {
                   <h3 className="font-kawaii" style={{ fontSize: "1.1rem", marginBottom: "8px" }}>{item.title}</h3>
                   <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.6 }}>{item.desc}</p>
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* WALL OF SHAME SECTION */}
+      {wallRoasts.length > 0 && (
+        <section style={{ paddingBottom: "80px", borderTop: "1px solid var(--border)", paddingTop: "60px" }}>
+          <div className="container">
+            <h2 className="font-kawaii" style={{ textAlign: "center", fontSize: "2rem", marginBottom: "12px", color: "var(--accent-pink)" }}>
+              {t.wallTitle}
+            </h2>
+            <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "48px", maxWidth: "600px", margin: "0 auto" }}>
+              {t.wallSub}
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px" }}>
+              {wallRoasts.slice(0, 6).map((roast) => (
+                <a
+                  key={roast.id}
+                  href={`/share/${roast.id}?img=${encodeURIComponent(roast.imgUrl)}&lang=${roast.lang}`}
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  className="card-link"
+                >
+                  <div className="card shadow-hover" style={{
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    padding: "24px",
+                    background: "rgba(10, 10, 20, 0.4)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "16px",
+                    transition: "all 0.2s ease",
+                    cursor: "pointer",
+                    position: "relative",
+                  }}
+                  >
+                    <div>
+                      {/* Header */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+                        <div style={{
+                          fontFamily: "'Fredoka One', cursive",
+                          fontSize: "1.1rem",
+                          color: "#f0f0f8",
+                          maxWidth: "180px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap"
+                        }}>
+                          {roast.verdict}
+                        </div>
+                        <span style={{
+                          fontFamily: "'Fredoka One', cursive",
+                          fontSize: "1rem",
+                          color: roast.score >= 75 ? "var(--accent-red)" : roast.score >= 50 ? "var(--accent-yellow)" : "var(--accent-teal)"
+                        }}>
+                          {roast.score}/100
+                        </span>
+                      </div>
+
+                      {/* Citation */}
+                      <p style={{
+                        fontSize: "0.85rem",
+                        color: "var(--text-muted)",
+                        fontStyle: "italic",
+                        lineHeight: 1.5,
+                        background: "rgba(255, 255, 255, 0.03)",
+                        borderLeft: "2px solid var(--accent-pink)",
+                        padding: "8px 12px",
+                        borderRadius: "0 6px 6px 0",
+                        marginBottom: "16px"
+                      }}>
+                        &ldquo;{roast.citation}&rdquo;
+                      </p>
+                    </div>
+
+                    {/* Footer / Meta */}
+                    <div style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+                      paddingTop: "12px",
+                      fontSize: "0.75rem",
+                      color: "var(--text-muted)"
+                    }}>
+                      <span>Roast {roast.level.toUpperCase()}</span>
+                      {roast.twitterHandle ? (
+                        <span style={{ color: "var(--accent-teal)" }}>
+                          {t.wallRoastedBy} {roast.twitterHandle}
+                        </span>
+                      ) : (
+                        <span>Anonymous</span>
+                      )}
+                    </div>
+                  </div>
+                </a>
               ))}
             </div>
           </div>
