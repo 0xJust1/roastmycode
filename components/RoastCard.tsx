@@ -87,6 +87,7 @@ const T = {
 
 export default function RoastCard({ result, level, lang }: RoastCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
   const [sharing, setSharing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [copying, setCopying] = useState(false);
@@ -109,6 +110,18 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
       pixelRatio: 2,
       skipFonts: true,
       backgroundColor: "#0a0a14",
+    });
+  }, []);
+
+  const generateExportImage = useCallback(async (): Promise<string> => {
+    if (!exportRef.current) throw new Error("Export card not mounted");
+    return await toPng(exportRef.current, {
+      cacheBust: true,
+      pixelRatio: 2,
+      skipFonts: true,
+      backgroundColor: "#0a0a14",
+      width: 1200,
+      height: 630,
     });
   }, []);
 
@@ -148,7 +161,7 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
 
       try {
         // Try to generate and upload card image
-        const dataUrl = await generateImage();
+        const dataUrl = await generateExportImage();
         const res = await fetch("/api/upload-card", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -357,6 +370,160 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
           {toast}
         </div>
       )}
+
+      {/* HIDDEN EXPORT FRAME FOR X SHARE (1200x630, 1.91:1) */}
+      <div
+        ref={exportRef}
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          top: "-9999px",
+          width: "1200px",
+          height: "630px",
+          background: "linear-gradient(135deg, #0a0a14 0%, #1a0a2e 50%, #0a1420 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "30px",
+          fontFamily: "'Fredoka One', 'Inter', monospace",
+          boxSizing: "border-box",
+        }}
+      >
+        <div style={{
+          width: "1140px",
+          height: "570px",
+          background: "rgba(10, 10, 20, 0.75)",
+          backdropFilter: "blur(10px)",
+          border: "2px solid rgba(255,110,180,0.35)",
+          borderRadius: "24px",
+          padding: "40px",
+          boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
+          position: "relative",
+          display: "grid",
+          gridTemplateColumns: "380px 1fr",
+          gap: "40px",
+          boxSizing: "border-box",
+          alignItems: "center",
+        }}>
+          {/* Background decoration */}
+          <div style={{
+            position: "absolute", inset: 0, opacity: 0.06,
+            backgroundImage: "radial-gradient(circle at 20% 20%, #ff6eb4 0%, transparent 50%), radial-gradient(circle at 80% 80%, #7fdbca 0%, transparent 50%)",
+            pointerEvents: "none",
+          }} />
+
+          {/* Left Column: Mascot, Verdict, Score */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "20px", position: "relative" }}>
+            <Mascot mood={result.mascotMood} size={150} />
+            <div>
+              <div style={{
+                fontSize: "0.8rem", letterSpacing: "0.15em", textTransform: "uppercase",
+                color: LEVEL_COLORS[level] || "#ff6eb4", fontFamily: "Inter", fontWeight: 600, marginBottom: "8px"
+              }}>
+                Roast {level.toUpperCase()} | {result.language}
+              </div>
+              <div style={{
+                fontSize: "1.8rem", fontFamily: "'Fredoka One', cursive",
+                color: "#f0f0f8", lineHeight: 1.2, marginBottom: "16px"
+              }}>
+                {result.verdict}
+              </div>
+              
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "280px", margin: "0 auto 8px" }}>
+                <div style={{
+                  flex: 1, height: "10px", borderRadius: "999px",
+                  background: "rgba(255,255,255,0.08)", overflow: "hidden"
+                }}>
+                  <div style={{
+                    height: "100%", borderRadius: "999px",
+                    width: `${result.score}%`,
+                    background: `linear-gradient(90deg, #ff6eb4, ${shameColor})`,
+                  }} />
+                </div>
+                <span style={{ fontFamily: "'Fredoka One', cursive", color: shameColor, fontSize: "1.1rem", whiteSpace: "nowrap" }}>
+                  {result.score}/100
+                </span>
+              </div>
+              <div style={{ fontSize: "0.85rem", color: "#8888aa", fontFamily: "Inter" }}>
+                {t.shameIndex}: {shameLabel}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Roast Details */}
+          <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between", position: "relative", boxSizing: "border-box" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {/* Citation */}
+              <div style={{
+                background: "rgba(255,110,180,0.08)", border: "1px solid rgba(255,110,180,0.2)",
+                borderRadius: "12px", padding: "16px 20px", position: "relative"
+              }}>
+                <div style={{ fontSize: "0.7rem", color: "#ff6eb4", fontFamily: "Inter", fontWeight: 600, marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                  {t.roastPhrase}
+                </div>
+                <div style={{ fontSize: "0.95rem", color: "#f0f0f8", fontFamily: "'Fredoka One', cursive", lineHeight: 1.4, fontStyle: "italic" }}>
+                  &ldquo;{result.citation}&rdquo;
+                </div>
+              </div>
+
+              {/* Roast text */}
+              <div style={{ color: "#c0c0d8", lineHeight: 1.6, fontSize: "0.9rem", fontFamily: "Inter" }}>
+                {result.roast}
+              </div>
+
+              {/* Worst line */}
+              {result.worstLine && (
+                <div>
+                  <div style={{ fontSize: "0.7rem", color: "#ff4757", fontFamily: "Inter", fontWeight: 600, marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                    {t.worstLine}
+                  </div>
+                  <div style={{
+                    background: "rgba(255,71,87,0.08)", border: "1px solid rgba(255,71,87,0.2)",
+                    borderRadius: "8px", padding: "10px 14px"
+                  }}>
+                    <code style={{ color: "#ff8c42", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.8rem", display: "block", marginBottom: "4px" }}>
+                      {result.worstLine}
+                    </code>
+                    <div style={{ color: "#8888aa", fontSize: "0.75rem", fontFamily: "Inter" }}>
+                      {result.worstLineComment}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Badges */}
+              {result.badges?.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {result.badges.map((badge, i) => (
+                    <span key={i} style={{
+                      padding: "3px 12px", borderRadius: "999px", fontSize: "0.7rem",
+                      fontFamily: "Inter", fontWeight: 600,
+                      background: ["rgba(255,110,180,0.15)", "rgba(127,219,202,0.15)", "rgba(255,230,109,0.15)"][i % 3],
+                      color: ["#ff6eb4", "#7fdbca", "#ffe66d"][i % 3],
+                      border: `1px solid ${["rgba(255,110,180,0.3)", "rgba(127,219,202,0.3)", "rgba(255,230,109,0.3)"][i % 3]}`,
+                    }}>
+                      {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "14px", marginTop: "16px"
+            }}>
+              <span style={{ fontFamily: "'Fredoka One', cursive", fontSize: "0.95rem", color: "#ff6eb4" }}>
+                roastmycode.wtf
+              </span>
+              <span style={{ fontSize: "0.7rem", color: "#8888aa", fontFamily: "Inter" }}>
+                {t.poweredBy}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
