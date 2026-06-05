@@ -372,23 +372,21 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
       )}
 
       {/* HIDDEN EXPORT FRAME FOR X SHARE (1200x630, 1.91:1) */}
-      <div
-        ref={exportRef}
-        style={{
-          position: "absolute",
-          left: "-9999px",
-          top: "-9999px",
-          width: "1200px",
-          height: "630px",
-          background: "linear-gradient(135deg, #0a0a14 0%, #1a0a2e 50%, #0a1420 100%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "30px",
-          fontFamily: "'Fredoka One', 'Inter', monospace",
-          boxSizing: "border-box",
-        }}
-      >
+      <div style={{ position: "absolute", left: "-9999px", top: "-9999px", overflow: "hidden", width: "1200px", height: "630px" }}>
+        <div
+          ref={exportRef}
+          style={{
+            width: "1200px",
+            height: "630px",
+            background: "linear-gradient(135deg, #0a0a14 0%, #1a0a2e 50%, #0a1420 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "30px",
+            fontFamily: "'Fredoka One', 'Inter', monospace",
+            boxSizing: "border-box",
+          }}
+        >
         <div style={{
           width: "1140px",
           height: "570px",
@@ -523,6 +521,7 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
