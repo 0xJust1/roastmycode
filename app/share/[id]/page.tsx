@@ -1,9 +1,45 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { list } from "@vercel/blob";
+import fs from "fs";
+import path from "path";
 
 interface SharePageProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ img?: string; lang?: string }>;
+}
+
+async function getCardImageUrl(id: string, searchImg?: string): Promise<string | null> {
+  // 1. If img is provided in searchParams, use it
+  if (searchImg) {
+    return decodeURIComponent(searchImg);
+  }
+
+  // 2. Try to find the card on Vercel Blob dynamically
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const { blobs } = await list({ prefix: `cards/${id}` });
+      const found = blobs.find((b) => b.pathname === `cards/${id}.png`);
+      if (found) {
+        return found.url;
+      }
+    } catch (err) {
+      console.error("Error listing blobs for card:", err);
+    }
+  }
+
+  // 3. Try to find the card locally (development fallback)
+  try {
+    const localPath = path.join(process.cwd(), "public", "cards", `${id}.png`);
+    if (fs.existsSync(localPath)) {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.roastmycode.wtf";
+      return `${baseUrl}/cards/${id}.png`;
+    }
+  } catch (err) {
+    // Silent fail
+  }
+
+  return null;
 }
 
 export async function generateMetadata({ params, searchParams }: SharePageProps): Promise<Metadata> {
@@ -11,8 +47,8 @@ export async function generateMetadata({ params, searchParams }: SharePageProps)
   const { img, lang } = await searchParams;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.roastmycode.wtf";
 
-  // Use the real Blob URL passed as ?img= param, fallback to base OG image
-  const cardImageUrl = img ? decodeURIComponent(img) : `${baseUrl}/opengraph-image.png`;
+  const resolvedImg = await getCardImageUrl(id, img);
+  const cardImageUrl = resolvedImg || `${baseUrl}/opengraph-image.png`;
 
   const isFr = lang === "fr";
   const title = isFr
@@ -42,9 +78,10 @@ export async function generateMetadata({ params, searchParams }: SharePageProps)
   };
 }
 
-export default async function SharePage({ searchParams }: SharePageProps) {
+export default async function SharePage({ params, searchParams }: SharePageProps) {
+  const { id } = await params;
   const { img, lang } = await searchParams;
-  const cardImageUrl = img ? decodeURIComponent(img) : null;
+  const cardImageUrl = await getCardImageUrl(id, img);
   const isFr = lang === "fr";
 
   return (
