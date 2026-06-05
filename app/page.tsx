@@ -76,6 +76,7 @@ const T = {
     wallTitle: "Le Mur de la Honte",
     wallSub: "Les pires codes et les verdicts les plus brutaux de la communauté",
     wallRoastedBy: "Roasté par",
+    followX: "Suivre @roastmycode_wtf",
   },
   en: {
     badge: "AI-powered code analysis — Instant results",
@@ -114,6 +115,7 @@ const T = {
     wallTitle: "The Wall of Shame",
     wallSub: "The worst code and most brutal verdicts shared by the community",
     wallRoastedBy: "Roasted by",
+    followX: "Follow @roastmycode_wtf",
   },
 };
 
@@ -246,8 +248,45 @@ export default function Home() {
       {/* HERO */}
       <section style={{ paddingTop: "80px", paddingBottom: "60px", textAlign: "center" }}>
         <div className="container">
-          {/* Lang toggle */}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "32px" }}>
+          {/* Top Bar (Follow X & Lang toggle) */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+            {/* Follow X */}
+            <a
+              href="https://x.com/roastmycode_wtf"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                background: "rgba(255, 110, 180, 0.05)",
+                border: "2px solid var(--accent-pink)",
+                borderRadius: "999px",
+                padding: "6px 16px",
+                fontSize: "0.85rem",
+                color: "var(--accent-pink)",
+                textDecoration: "none",
+                fontFamily: "'Fredoka One', cursive",
+                transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(255, 110, 180, 0.15)";
+                e.currentTarget.style.transform = "scale(1.08) translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 8px 24px rgba(255, 110, 180, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(255, 110, 180, 0.05)";
+                e.currentTarget.style.transform = "scale(1) translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.736l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z" />
+              </svg>
+              <span>{t.followX}</span>
+            </a>
+
+            {/* Lang toggle */}
             <div style={{
               display: "flex", background: "var(--bg-card)", border: "1px solid var(--border)",
               borderRadius: "999px", padding: "4px", gap: "4px"
