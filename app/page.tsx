@@ -65,6 +65,11 @@ const T = {
     ],
     footerPowered: "Propulse par IA",
     emptyError: "Colle du code d'abord !",
+    tipTitle: "Aide la mascotte a survivre",
+    tipDesc: "Chaque roast consomme de l'electricite et detruit la dignite de notre IA. Offre un cafe ou quelques cryptos pour payer les serveurs et des croquettes a la mascotte !",
+    tipCopy: "Copier",
+    tipCopied: "Copie !",
+    tipCoffee: "Offrir un cafe",
   },
   en: {
     badge: "AI-powered code analysis — Instant results",
@@ -92,6 +97,11 @@ const T = {
     ],
     footerPowered: "Powered by AI",
     emptyError: "Paste some code first!",
+    tipTitle: "Help the mascot survive",
+    tipDesc: "Every roast consumes electricity and destroys our AI's dignity. Buy a coffee or send some crypto to pay for servers and buy kibbles for the mascot!",
+    tipCopy: "Copy",
+    tipCopied: "Copied!",
+    tipCoffee: "Buy me a coffee",
   },
 };
 
@@ -119,9 +129,20 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [charCount, setCharCount] = useState(0);
   const [totalRoasts, setTotalRoasts] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const t = T[lang];
   const levels = LEVELS[lang];
+
+  const ethAddress = process.env.NEXT_PUBLIC_DONATION_ETH_ADDRESS;
+  const coffeeUrl = process.env.NEXT_PUBLIC_DONATION_COFFEE_URL;
+
+  const handleCopyAddress = () => {
+    if (!ethAddress) return;
+    navigator.clipboard.writeText(ethAddress);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Load real counter on mount
   useEffect(() => {
@@ -415,6 +436,107 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* TIP SECTION */}
+      <section style={{ paddingBottom: "80px", borderTop: "1px solid var(--border)", paddingTop: "60px" }}>
+        <div className="container" style={{ maxWidth: "600px" }}>
+          <div className="card" style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            padding: "36px",
+            background: "rgba(10, 10, 20, 0.6)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(255, 110, 180, 0.2)",
+            boxShadow: "0 8px 32px 0 rgba(255, 110, 180, 0.05)",
+          }}>
+            <div className="animate-float" style={{ marginBottom: "16px" }}>
+              <Mascot mood="crying" size={80} />
+            </div>
+            
+            <h2 className="font-kawaii" style={{ fontSize: "1.6rem", color: "var(--accent-pink)", marginBottom: "12px" }}>
+              {t.tipTitle}
+            </h2>
+            
+            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "24px" }}>
+              {t.tipDesc}
+            </p>
+
+            <div style={{ display: "flex", gap: "12px", flexDirection: "column", width: "100%", alignItems: "center" }}>
+              {coffeeUrl && (
+                <a
+                  href={coffeeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    textDecoration: "none",
+                    padding: "12px 24px",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                    <line x1="6" y1="1" x2="6" y2="4" />
+                    <line x1="10" y1="1" x2="10" y2="4" />
+                    <line x1="14" y1="1" x2="14" y2="4" />
+                  </svg>
+                  {t.tipCoffee}
+                </a>
+              )}
+
+              {ethAddress && (
+                <div style={{
+                  width: "100%",
+                  background: "var(--bg-main)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  padding: "10px 14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                  marginTop: "8px",
+                  maxWidth: "420px",
+                }}>
+                  <div style={{
+                    fontFamily: "JetBrains Mono, monospace",
+                    fontSize: "0.8rem",
+                    color: "var(--text-muted)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}>
+                    {ethAddress}
+                  </div>
+                  <button
+                    onClick={handleCopyAddress}
+                    style={{
+                      background: copied ? "var(--accent-teal)" : "rgba(255, 110, 180, 0.15)",
+                      color: copied ? "#05050a" : "var(--accent-pink)",
+                      border: "none",
+                      borderRadius: "6px",
+                      padding: "6px 12px",
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {copied ? t.tipCopied : t.tipCopy}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* FOOTER */}
       <footer style={{ borderTop: "1px solid var(--border)", padding: "24px 0", textAlign: "center" }}>
