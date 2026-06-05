@@ -163,7 +163,8 @@ export default function RoastCard({ result, level, lang }: RoastCardProps) {
         console.warn("Card upload failed, sharing without image:", uploadErr);
       }
 
-      const xUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(shareUrl)}`;
+      const finalShareUrl = shareUrl.includes("?") ? `${shareUrl}&lang=${lang}` : `${shareUrl}?lang=${lang}`;
+      const xUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(finalShareUrl)}`;
       window.open(xUrl, "_blank");
     } catch (err) {
       console.error("Share error:", err);

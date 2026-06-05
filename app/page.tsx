@@ -121,7 +121,7 @@ var x = calcul(10,20,30,1,2,3,4)
 console.log(x)`;
 
 export default function Home() {
-  const [lang, setLang] = useState<Lang>("fr");
+  const [lang, setLang] = useState<Lang>("en");
   const [code, setCode] = useState("");
   const [level, setLevel] = useState<RoastLevel>("brutal");
   const [loading, setLoading] = useState(false);
